@@ -181,7 +181,11 @@ def parse_args() -> Args:
     )
     parser.add_argument("-l", "--login", required=True, help="Your username")
     parser.add_argument(
-        "--gen-ca", required=False, default=False, action=BooleanOptionalAction
+        "--gen-ca",
+        required=False,
+        default=False,
+        action=BooleanOptionalAction,
+        help="Generate new CA",
     )
 
     args = parser.parse_args()
