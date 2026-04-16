@@ -49,7 +49,7 @@ def gen_ca(args: Args):
         "-out",
         root_crt_out,
         "-subj",
-        "/CN=mTLS-Private-Root-CA",
+        "/C=CH/O=lusc.ch/CN=mTLS-Private-Root-CA",
         "-addext",
         "basicConstraints=critical,CA:TRUE,pathlen:0",
         "-addext",
@@ -77,7 +77,7 @@ def gen_client(args: Args):
         "-out",
         csr_out,
         "-subj",
-        f"/OU={args.device}/CN={args.login}",
+        f"/C=CH/O=lusc.ch/OU={args.device}/CN={args.login}",
     )
 
     mtls_ext = dedent(f"""
