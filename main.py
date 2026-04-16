@@ -206,7 +206,7 @@ def parse_args() -> Args:
 def main():
     args = parse_args()
 
-    if args.gen_ca or not cert_out.exists():
+    if args.gen_ca or not root_key_out.exists():
         gen_ca(args)
 
     gen_client(args)
