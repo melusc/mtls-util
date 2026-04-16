@@ -12,10 +12,7 @@ root_key_out = cert_out / "rootCA.key"
 root_crt_out = cert_out / "rootCA.crt"
 
 
-def _run_openssl(*args, input=b"", env={}) -> CompletedProcess:
-    if len(args) == 1 and isinstance(args[0], (tuple, list)):
-        args = args[0]
-
+def _run_openssl(*args: str | Path, input=b"", env={}) -> CompletedProcess:
     args = tuple(str(p) for p in args)
 
     print("$ openssl", " ".join(args), file=stderr)
@@ -30,14 +27,13 @@ def gen_ca(args: Args):
     confirm_overwrite(root_key_out)
 
     _run_openssl(
-        "genpkey",
-        "-algorithm",
-        "Ed25519",
-        "-aes-256-cbc",
+        "genrsa",
+        "-aes256",
+        "-passout",
+        "stdin",
         "-out",
         root_key_out,
-        "-pass",
-        "stdin",
+        "8192",
         input=f"{args.root_ca_pass}\n".encode(),
     )
 
@@ -72,7 +68,7 @@ def gen_client(args: Args):
 
     confirm_overwrite(key_out)
 
-    _run_openssl("genpkey", "-algorithm", "Ed25519", "-out", key_out)
+    _run_openssl("genrsa", "-out", key_out, "4096")
     _run_openssl(
         "req",
         "-new",
@@ -85,11 +81,9 @@ def gen_client(args: Args):
     )
 
     mtls_ext = dedent(f"""
-        authorityKeyIdentifier=keyid,issuer
-        basicConstraints=critical,CA:FALSE
+        basicConstraints = critical, CA:FALSE
         keyUsage = critical, digitalSignature
         extendedKeyUsage = critical, clientAuth
-        subjectAltName = URI:user://{args.login}
     """).strip()
 
     env = {"CA_PASSWORD": args.root_ca_pass}
