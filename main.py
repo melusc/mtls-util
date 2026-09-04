@@ -1,3 +1,7 @@
+import base64
+import hashlib
+import json
+import secrets
 from dataclasses import dataclass
 from getpass import getpass
 from pathlib import Path
@@ -21,6 +25,20 @@ def _run_openssl(*args: str | Path, input=b"", env={}) -> CompletedProcess:
         return run(("openssl", *args), check=True, input=input, env=env)
 
     return run(("openssl", *args), check=True, env=env)
+
+
+def _hash_password(password: str) -> str:
+    n = 16384
+    r = 8
+    p = 1
+
+    salt = secrets.token_bytes(16)
+    key = hashlib.scrypt(password.encode("utf-8"), salt=salt, n=n, r=r, p=p)
+
+    salt_b64 = base64.urlsafe_b64encode(salt).decode("ascii").rstrip("=")
+    key_b64 = base64.urlsafe_b64encode(key).decode("ascii").rstrip("=")
+
+    return f"$scrypt$n={n},r={r},p={p}${salt_b64}${key_b64}"
 
 
 def gen_ca(args: Args):
@@ -65,8 +83,19 @@ def gen_client(args: Args):
     csr_out = cert_out / f"{args.file_name}.csr"
     crt_out = cert_out / f"{args.file_name}.crt"
     p12_out = cert_out / f"{args.file_name}.p12"
+    conf_out = cert_out / f"{args.file_name}.json"
 
     confirm_overwrite(key_out)
+
+    conf_json = {
+        "file_name": args.file_name,
+        "device": args.device,
+        "login": args.login,
+        "client_pass": _hash_password(args.client_pass),
+    }
+
+    with conf_out.open("w") as f:
+        json.dump(conf_json, f, indent="\t")
 
     _run_openssl("genrsa", "-out", key_out, "4096")
     _run_openssl(
