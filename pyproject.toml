@@ -3,11 +3,9 @@ name = "mtls-util"
 version = "0.1.0"
 description = "Add your description here"
 requires-python = ">=3.14"
-dependencies = [
-    "ruff>=0.15.10",
-]
 
 [dependency-groups]
 dev = [
-    "ty>=0.0.77",
+    "ruff>=0.16.10",
+    "ty>=0.0.85",
 ]
